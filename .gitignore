@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+4f565d4caf6e20a9a9f01af9c53b8997/
+.agents/
+src/assets/hero/frames/
+pics/
