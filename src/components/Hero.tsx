@@ -1,134 +1,167 @@
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
-import { useRef, useEffect, useState } from 'react';
+import { motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+
+const SOURCE_FRAME_COUNT = 192;
+const DISPLAY_FRAME_COUNT = 96;
+const TARGET_FPS = 30;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+const MAX_CANVAS_WIDTH = 1920;
 
 export default function Hero({ onReady }: { onReady?: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const animationRef = useRef<number | null>(null);
+  const lastDrawAtRef = useRef(0);
   const targetFrameRef = useRef(0);
   const currentFrameRef = useRef(0);
   const renderedFrameRef = useRef(-1);
+  const imagesRef = useRef<(HTMLImageElement | null)[]>(Array(DISPLAY_FRAME_COUNT).fill(null));
+  const requestedRef = useRef<Set<number>>(new Set());
+  const loadingRef = useRef<Set<number>>(new Set());
+  const readyRef = useRef(false);
   const [loaded, setLoaded] = useState(false);
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  });
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end end"] });
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.16], [1, 0]);
 
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const sourceIndexForDisplayFrame = (displayIndex: number) =>
+    Math.min(SOURCE_FRAME_COUNT - 1, displayIndex * 2 + 1);
 
-  const renderFrame = (frameIndex: number) => {
+  const displayIndexForProgress = (progress: number) =>
+    Math.max(0, Math.min(DISPLAY_FRAME_COUNT - 1, Math.round(progress * (DISPLAY_FRAME_COUNT - 1))));
+
+  const drawFrame = (requestedIndex: number) => {
     const canvas = canvasRef.current;
-    const img = images[frameIndex];
+    const ctx = contextRef.current;
+    if (!canvas || !ctx) return;
 
-    if (!canvas || !img) return;
+    const safeIndex = Math.max(0, Math.min(DISPLAY_FRAME_COUNT - 1, requestedIndex));
+    let image = imagesRef.current[safeIndex];
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+    if (!image) {
+      for (let distance = 1; distance < DISPLAY_FRAME_COUNT; distance += 1) {
+        const before = safeIndex - distance;
+        const after = safeIndex + distance;
+        if (before >= 0 && imagesRef.current[before]) { image = imagesRef.current[before]; break; }
+        if (after < DISPLAY_FRAME_COUNT && imagesRef.current[after]) { image = imagesRef.current[after]; break; }
+      }
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    renderedFrameRef.current = frameIndex;
+    if (!image?.naturalWidth || !image.naturalHeight) return;
+
+    const scale = Math.min(1, MAX_CANVAS_WIDTH / image.naturalWidth);
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+    }
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(image, 0, 0, width, height);
+    renderedFrameRef.current = safeIndex;
+  };
+
+  const loadFrame = (displayIndex: number) => {
+    const index = Math.max(0, Math.min(DISPLAY_FRAME_COUNT - 1, displayIndex));
+    if (requestedRef.current.has(index) || loadingRef.current.has(index)) return;
+
+    requestedRef.current.add(index);
+    loadingRef.current.add(index);
+
+    const sourceIndex = sourceIndexForDisplayFrame(index);
+    const image = new Image();
+    image.decoding = "async";
+    image.loading = "eager";
+    image.src = "/hero/frames/ffout" + String(sourceIndex).padStart(3, "0") + ".gif";
+
+    image.onload = async () => {
+      loadingRef.current.delete(index);
+      try { await image.decode(); } catch {}
+      imagesRef.current[index] = image;
+
+      if (index === 0 && !readyRef.current) {
+        readyRef.current = true;
+        setLoaded(true);
+        onReady?.();
+        drawFrame(0);
+      }
+    };
+
+    image.onerror = () => { loadingRef.current.delete(index); };
+  };
+
+  const primeAround = (center: number) => {
+    loadFrame(center);
+    for (let distance = 1; distance <= 5; distance += 1) {
+      loadFrame(center - distance);
+      loadFrame(center + distance);
+    }
   };
 
   useEffect(() => {
-    if (!loaded || !images.length) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { loadFrame(0); return; }
 
-    const animate = () => {
+    for (let index = 0; index < 12; index += 1) loadFrame(index);
+
+    const warmup = window.setInterval(() => {
+      primeAround(Math.round(targetFrameRef.current));
+      if (requestedRef.current.size >= DISPLAY_FRAME_COUNT) window.clearInterval(warmup);
+    }, 180);
+
+    return () => window.clearInterval(warmup);
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, "change", latest => {
+    const progress = Math.max(0, Math.min(1, latest));
+    const frame = displayIndexForProgress(progress);
+    targetFrameRef.current = frame;
+    primeAround(frame);
+  });
+
+  useEffect(() => {
+    if (!loaded) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    contextRef.current = canvas.getContext("2d");
+
+    const animate = (timestamp: number) => {
       const target = targetFrameRef.current;
       const current = currentFrameRef.current;
-
-      // Smoothly chase the scroll position instead of snapping directly to it.
       const distance = target - current;
+      currentFrameRef.current = Math.abs(distance) < 0.03 ? target : current + distance * 0.20;
+      const frame = Math.round(currentFrameRef.current);
 
-      if (Math.abs(distance) < 0.02) {
-        currentFrameRef.current = target;
-      } else {
-        // Higher = more responsive, lower = smoother.
-        currentFrameRef.current = current + distance * 0.16;
+      if (frame !== renderedFrameRef.current && timestamp - lastDrawAtRef.current >= FRAME_INTERVAL) {
+        lastDrawAtRef.current = timestamp;
+        drawFrame(frame);
       }
-
-      const frame = Math.max(
-        0,
-        Math.min(images.length - 1, Math.round(currentFrameRef.current))
-      );
-
-      if (frame !== renderedFrameRef.current) {
-        renderFrame(frame);
-      }
-
       animationRef.current = requestAnimationFrame(animate);
     };
 
     animationRef.current = requestAnimationFrame(animate);
-
     return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      contextRef.current = null;
     };
-  }, [loaded, images]);
+  }, [loaded]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const frameCount = 192;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const targetCount = reduced ? 1 : frameCount;
-    const nextImages: HTMLImageElement[] = [];
-    let loadedCount = 0;
-
-    for (let i = 1; i <= targetCount; i++) {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = `/hero/frames/ffout${String(i).padStart(3, '0')}.gif`;
-
-      img.onload = () => {
-        if (cancelled) return;
-
-        loadedCount += 1;
-
-        if (loadedCount === targetCount) {
-          setImages(nextImages);
-          setLoaded(true);
-          onReady?.();
-        }
-      };
-
-      nextImages.push(img);
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [onReady]);
-
-  useMotionValueEvent(scrollYProgress, 'change', latest => {
-    if (!images.length) return;
-
-    // Keep the target as a fractional frame. The RAF loop handles the easing.
-    const clampedProgress = Math.max(0, Math.min(1, latest));
-    targetFrameRef.current = clampedProgress * (images.length - 1);
-  });
-
-  // Draw the first frame immediately once the assets are ready.
-  useEffect(() => {
-    if (!loaded || !images.length) return;
-
+    if (!loaded) return;
     currentFrameRef.current = 0;
     targetFrameRef.current = 0;
     renderedFrameRef.current = -1;
-    renderFrame(0);
-  }, [loaded, images]);
+    lastDrawAtRef.current = 0;
+    drawFrame(0);
+  }, [loaded]);
 
   return (
-    <section ref={containerRef} className="relative h-[420vh] bg-[#090806]">
+    <section ref={containerRef} className="relative h-[380vh] bg-[#090806]">
       <div className="sticky top-0 h-screen overflow-hidden">
         {!loaded && (
           <div className="absolute inset-0 z-20 grid place-items-center bg-[#090806]">
@@ -136,50 +169,23 @@ export default function Hero({ onReady }: { onReady?: () => void }) {
               <div className="mx-auto mb-5 h-px w-28 overflow-hidden bg-white/15">
                 <div className="h-full w-2/3 bg-theme-accent animate-[slide_1.3s_ease-in-out_infinite]" />
               </div>
-              <p className="text-[9px] uppercase tracking-[.35em] text-white/35">
-                Preparing the collection
-              </p>
+              <p className="text-[9px] uppercase tracking-[.35em] text-white/35">Preparing the collection</p>
             </div>
           </div>
         )}
 
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: loaded ? 1 : 0 }}
-          aria-hidden="true"
-        />
-
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full object-cover" style={{ opacity: loaded ? 1 : 0 }} aria-hidden="true" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,transparent_0,rgba(0,0,0,.10)_38%,rgba(0,0,0,.78)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-black/25" />
 
-        <motion.div
-          style={{ opacity: contentOpacity }}
-          className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-7xl flex-col gap-9 px-6 pb-10 sm:px-8 md:flex-row md:items-end md:justify-between md:pb-14 lg:px-10"
-        >
+        <motion.div style={{ opacity: contentOpacity }} className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[1440px] flex-col gap-9 px-6 pb-10 sm:px-8 md:flex-row md:items-end md:justify-between md:pb-14 lg:px-12">
           <div className="max-w-3xl">
-            <p className="mb-4 text-[10px] uppercase tracking-[.32em] text-theme-accent">
-              Krishna Jewelry · Fine Indian Craft
-            </p>
-            <h1 className="font-serif text-[clamp(3.3rem,9vw,8.5rem)] leading-[.84] text-white">
-              Jewelry with
-              <em className="block italic font-light shimmer-gold">
-                a point of view.
-              </em>
-            </h1>
+            <p className="mb-4 text-[10px] uppercase tracking-[.32em] text-theme-accent">Krishna Jewelry · Fine Indian Craft</p>
+            <h1 className="font-serif text-[clamp(3.3rem,9vw,8.5rem)] leading-[.84] text-white">Jewelry with<em className="block font-light italic shimmer-gold">a point of view.</em></h1>
           </div>
-
           <div className="max-w-xs text-sm text-white/65 md:pb-2">
-            <p className="leading-7">
-              Heritage techniques, refined silhouettes and pieces designed to be
-              worn well beyond the occasion.
-            </p>
-            <a
-              href="#collections"
-              className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/20 px-5 py-3 text-[10px] uppercase tracking-[.22em] text-white transition-colors hover:border-theme-accent hover:text-theme-accent"
-            >
-              Explore collection <span>↘</span>
-            </a>
+            <p className="leading-7">Heritage techniques, refined silhouettes and pieces designed to be worn well beyond the occasion.</p>
+            <a href="#collections" className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/20 px-5 py-3 text-[10px] uppercase tracking-[.22em] text-white transition-colors hover:border-theme-accent hover:text-theme-accent">Explore collection <span>↘</span></a>
           </div>
         </motion.div>
 
