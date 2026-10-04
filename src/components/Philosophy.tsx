@@ -1,235 +1,85 @@
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { GoldFloaters } from './GoldDecorations';
+import { motion } from 'motion/react';
 
-export default function Philosophy()
-{
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+const chapters = [
+  {
+    number: '01',
+    label: 'The point of view',
+    title: 'Less noise. More character.',
+    copy: 'Krishna is built around the idea that a memorable piece does not need to shout. Strong proportions, considered detail and a clear sense of place do the talking.',
+    image: '/images/Uncut%20Gemstones.png',
+    alt: 'Uncut gemstones presented as a raw material study',
+  },
+  {
+    number: '02',
+    label: 'The language',
+    title: 'Tradition, edited for now.',
+    copy: 'Indian jewellery carries centuries of visual language. We keep the soul of that language while giving each piece a cleaner, more contemporary stage.',
+    image: '/images/Jadau%20Setting.png',
+    alt: 'Jadau jewellery with traditional Indian detailing',
+  },
+];
 
-  // Chapter 1 animations
-  const opacity1 = useTransform(scrollYProgress, [0, 0.3, 0.4, 0.5], [1, 1, 0, 0]);
-  const y1 = useTransform(scrollYProgress, [0, 0.3, 0.4, 0.5], [0, 0, -50, -50]);
-  const scale1 = useTransform(scrollYProgress, [0, 0.3, 0.4], [1, 1, 0.95]);
-  const blur1 = useTransform(scrollYProgress, [0.35, 0.5], [0, 8]);
-
-  // Chapter 2 animations
-  const opacity2 = useTransform(scrollYProgress, [0.4, 0.5, 0.8, 1], [0, 1, 1, 0]);
-  const y2 = useTransform(scrollYProgress, [0.4, 0.5, 0.8, 1], [50, 0, 0, -50]);
-  const scale2 = useTransform(scrollYProgress, [0.4, 0.5, 0.8], [0.95, 1, 1]);
-
-  // Background accent line
-  const lineWidth = useTransform(scrollYProgress, [0, 0.5, 1], ['0%', '100%', '0%']);
-
+export default function Philosophy() {
   return (
-    <section id="philosophy" ref={containerRef} className="relative h-[300vh] bg-theme-light text-theme-dark">
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
-
-        <GoldFloaters variant="light" />
-
-        {/* Animated background accent line */}
-        <motion.div
-          className="absolute top-1/2 left-0 h-[1px] bg-gradient-to-r from-transparent via-theme-accent/20 to-transparent z-0"
-          style={{ width: lineWidth }}
-        />
-
-        {/* Chapter 1 */}
-        <motion.div
-          className="absolute inset-0 flex flex-col items-center justify-center px-6 max-w-5xl mx-auto text-center z-10"
-          style={{ opacity: opacity1, y: y1, scale: scale1, filter: useTransform(blur1, v => `blur(${v}px)`) }}
-        >
-          <motion.div
-            className="mb-6 flex items-center gap-3"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-          >
-            <div className="h-[1px] w-8 bg-theme-accent/40" />
-            <span className="text-[10px] uppercase tracking-[0.4em] text-theme-accent font-medium">Chapter I</span>
-            <div className="h-[1px] w-8 bg-theme-accent/40" />
-          </motion.div>
-
-          <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl mb-12 leading-tight">
-            {"We go back to ".split(' ').map((word, i) => (
-              <motion.span
-                key={i}
-                className="inline-block mr-[0.3em]"
-                initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: i * 0.08 }}
-              >
-                {word}
-              </motion.span>
-            ))}
-            <motion.em
-              className="italic shimmer-gold inline-block"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              basics
-            </motion.em>
-            , <br />
-            {"only ".split('').map((char, i) => (
-              <motion.span
-                key={i}
-                className="inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 + i * 0.03 }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </motion.span>
-            ))}
-            <motion.em
-              className="italic shimmer-gold inline-block"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.9 }}
-            >
-              real
-            </motion.em>
-            {" elements."}
-          </h2>
-
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full">
-            <motion.div
-              className="w-64 h-80 overflow-hidden rounded-t-full glow-pulse relative"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.3 }}
-            >
-              <img
-                src="/images/Uncut%20Gemstones.png"
-                alt="Raw gold"
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-theme-light/20 to-transparent" />
-            </motion.div>
-            <motion.div
-              className="max-w-sm text-left"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
-              <h3 className="uppercase tracking-[0.3em] text-[10px] font-semibold mb-4 text-theme-accent flex items-center gap-2">
-                <span className="w-6 h-[1px] bg-theme-accent" />
-                No compromise. No shortcuts.
-              </h3>
-              <p className="text-sm md:text-base leading-relaxed text-theme-dark/70">
-                In a world of mass production, we choose restraint. Fewer, better elements handled with care. It's not about adding more, it's about revealing what is already perfect.
-              </p>
-            </motion.div>
+    <section id="philosophy" className="relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
+      <div className="mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
+        <div className="grid gap-12 border-b border-theme-dark/10 pb-16 lg:grid-cols-[1.05fr_.95fr] lg:items-end lg:gap-20">
+          <div>
+            <p className="section-kicker">Our point of view</p>
+            <h2 className="mt-5 max-w-4xl font-serif text-[clamp(3rem,7vw,7rem)] leading-[.86]">
+              Jewellery with
+              <em className="block italic shimmer-gold">a quieter confidence.</em>
+            </h2>
           </div>
-        </motion.div>
+          <p className="max-w-lg text-sm leading-7 text-theme-dark/55 lg:pb-2 lg:text-base">
+            The collection is rooted in Indian forms, but the presentation is deliberately modern. Every section should feel like an invitation to look closer, not a wall of decoration.
+          </p>
+        </div>
 
-        {/* Chapter 2 */}
-        <motion.div
-          className="absolute inset-0 flex flex-col items-center justify-center px-6 max-w-5xl mx-auto text-center z-10"
-          style={{ opacity: opacity2, y: y2, scale: scale2 }}
-        >
-          <motion.div
-            className="mb-6 flex items-center gap-3"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-          >
-            <div className="h-[1px] w-8 bg-theme-accent/40" />
-            <span className="text-[10px] uppercase tracking-[0.4em] text-theme-accent font-medium">Chapter II</span>
-            <div className="h-[1px] w-8 bg-theme-accent/40" />
-          </motion.div>
-
-          <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl mb-12 leading-tight">
-            {"Gems born from a ".split(' ').map((word, i) => (
-              <motion.span
-                key={i}
-                className="inline-block mr-[0.3em]"
-                initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: i * 0.08 }}
+        <div className="mt-16 grid gap-20 lg:mt-24 lg:gap-24">
+          {chapters.map((chapter, index) => (
+            <div key={chapter.number} className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+              <motion.div
+                className={index % 2 ? 'lg:col-span-5 lg:col-start-8 lg:row-start-1' : 'lg:col-span-5 lg:col-start-1'}
+                initial={{ opacity: 0, x: index % 2 ? 30 : -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-100px' }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               >
-                {word}
-              </motion.span>
-            ))}
-            <motion.em
-              className="italic shimmer-gold inline-block"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              landscape
-            </motion.em>
-            <br />
-            {"carved over ".split(' ').map((word, i) => (
-              <motion.span
-                key={i}
-                className="inline-block mr-[0.3em]"
-                initial={{ opacity: 0, y: 20 }}
+                <div className="mb-7 flex items-center gap-4">
+                  <span className="font-mono text-[10px] tracking-[.18em] text-theme-accent">{chapter.number}</span>
+                  <span className="h-px w-12 bg-theme-accent/35" />
+                  <span className="section-kicker">{chapter.label}</span>
+                </div>
+                <h3 className="max-w-xl font-serif text-4xl leading-[.95] sm:text-5xl lg:text-6xl">
+                  {chapter.title}
+                </h3>
+                <p className="mt-6 max-w-md text-sm leading-7 text-theme-dark/58">
+                  {chapter.copy}
+                </p>
+              </motion.div>
+
+              <motion.div
+                className={index % 2 ? 'lg:col-span-5 lg:col-start-2 lg:row-start-1' : 'lg:col-span-5 lg:col-start-8'}
+                initial={{ opacity: 0, y: 35 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 + i * 0.08 }}
+                viewport={{ once: true, margin: '-100px' }}
+                transition={{ duration: 1, delay: 0.08 }}
               >
-                {word}
-              </motion.span>
-            ))}
-            <motion.em
-              className="italic shimmer-gold inline-block"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.9 }}
-            >
-              millennia
-            </motion.em>
-            .
-          </h2>
-
-          <div className="flex flex-col md:flex-row-reverse items-center justify-center gap-8 md:gap-16 w-full">
-            <motion.div
-              className="w-64 h-80 overflow-hidden rounded-b-full glow-pulse relative"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.3 }}
-            >
-              <img
-                src="/images/Jadau%20Setting.png"
-                alt="Diamond close up"
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-theme-light/20 to-transparent" />
-            </motion.div>
-            <motion.div
-              className="max-w-sm text-left md:text-right"
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
-              <h3 className="uppercase tracking-[0.3em] text-[10px] font-semibold mb-4 text-theme-accent flex items-center gap-2 md:justify-end">
-                Our foundation. Our proof.
-                <span className="w-6 h-[1px] bg-theme-accent" />
-              </h3>
-              <p className="text-sm md:text-base leading-relaxed text-theme-dark/70">
-                Our journey begins deep beneath the earth's surface. A natural process of pressure and time, untouched by human hands until the moment of discovery.
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
-
+                <div className="group relative overflow-hidden bg-[#efe9dc]">
+                  <img
+                    src={chapter.image}
+                    alt={chapter.alt}
+                    loading="lazy"
+                    className="aspect-[4/5] w-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.035]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                  <span className="absolute bottom-5 left-5 text-[9px] uppercase tracking-[.28em] text-white/65">Krishna / Study {chapter.number}</span>
+                </div>
+              </motion.div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
