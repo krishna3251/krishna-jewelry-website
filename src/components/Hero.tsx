@@ -1,199 +1,80 @@
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
 import { useRef, useEffect, useState } from 'react';
 
-export default function Hero()
-{
+export default function Hero({ onReady }: { onReady?: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
   const [loaded, setLoaded] = useState(false);
   const [images, setImages] = useState<HTMLImageElement[]>([]);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start','end end'] });
+  const contentOpacity = useTransform(scrollYProgress, [0,.15], [1,0]);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  useEffect(() => {
+    let cancelled = false;
+    const count = 192;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const target = reduced ? 1 : count;
+    const next: HTMLImageElement[] = [];
+    let done = 0;
 
-  // Fade out content early in the scroll (0 to 15%)
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-
-  // Fade out scroll hint extremely early (0 to 8%)
-  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
-
-  // Preload Images
-  useEffect(() =>
-  {
-    const frameCount = 192;
-    const loadedImages: HTMLImageElement[] = [];
-    let loadCounter = 0;
-
-    // Check for reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const targetCount = prefersReducedMotion ? 1 : frameCount;
-
-    for (let i = 1; i <= targetCount; i++) {
+    for (let i=1;i<=target;i++) {
       const img = new Image();
-      const paddedIndex = String(i).padStart(3, '0');
-      img.src = `/hero/frames/ffout${paddedIndex}.gif`;
-
-      img.onload = () =>
-      {
-        loadCounter++;
-        if (loadCounter === targetCount) {
-          setImages(loadedImages);
+      img.decoding = 'async';
+      img.src = `/hero/frames/ffout${String(i).padStart(3,'0')}.gif`;
+      img.onload = () => {
+        if (cancelled) return;
+        done++;
+        if (done === target) {
+          setImages(next);
           setLoaded(true);
-
-          // Draw first frame immediately
-          const canvas = canvasRef.current;
-          const ctx = canvas?.getContext('2d');
-          if (canvas && ctx && loadedImages[0]) {
-            canvas.width = loadedImages[0].naturalWidth;
-            canvas.height = loadedImages[0].naturalHeight;
-            ctx.drawImage(loadedImages[0], 0, 0, canvas.width, canvas.height);
-          }
+          onReady?.();
         }
       };
-      loadedImages.push(img);
+      next.push(img);
     }
-  }, []);
+    return () => { cancelled = true; };
+  }, [onReady]);
 
-  // Frame drawing mapped to scroll progress
-  useMotionValueEvent(scrollYProgress, 'change', (latest) =>
-  {
-    if (!loaded || images.length === 0) return;
-
+  useMotionValueEvent(scrollYProgress, 'change', latest => {
+    if (!loaded || !images.length || !canvasRef.current) return;
+    const img = images[Math.min(images.length-1, Math.floor(latest*images.length))];
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-
-    // Map 0-1 progress to 0-191 frame index
-    const maxIndex = images.length - 1;
-    let frameIndex = Math.floor(latest * (maxIndex + 1));
-    frameIndex = Math.min(Math.max(frameIndex, 0), maxIndex);
-
-    // Skip drawing if using reduced motion (always shows frame 0)
-    if (images.length === 1) frameIndex = 0;
-
-    const img = images[frameIndex];
-    if (img) {
-      // Clear and draw new frame
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx || !img) return;
+    if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
     }
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
   });
 
   return (
-    <section ref={containerRef} className="relative h-[500vh] bg-black">
-
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-
-        {/* Loading State */}
+    <section ref={containerRef} className="relative h-[420vh] bg-[#090806]">
+      <div className="sticky top-0 h-screen overflow-hidden">
         {!loaded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black">
-            <div className="w-12 h-12 rounded-full border-2 border-theme-accent border-t-transparent animate-spin mb-4" />
-            <p className="uppercase tracking-widest text-xs text-white/50">Loading...</p>
+          <div className="absolute inset-0 z-20 grid place-items-center bg-[#090806]">
+            <div className="text-center">
+              <div className="mx-auto mb-5 h-px w-28 overflow-hidden bg-white/15"><div className="h-full w-2/3 bg-theme-accent animate-[slide_1.3s_ease-in-out_infinite]"/></div>
+              <p className="text-[9px] uppercase tracking-[.35em] text-white/35">Preparing the collection</p>
+            </div>
           </div>
         )}
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full object-cover" style={{opacity:loaded?1:0}} aria-hidden="true"/>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,transparent_0,rgba(0,0,0,.10)_38%,rgba(0,0,0,.78)_100%)]"/>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-black/25"/>
 
-        {/* Canvas Element */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover will-change-transform transition-opacity duration-500"
-          style={{ opacity: loaded ? 1 : 0 }}
-        />
-
-        {/* Multi-layer Overlay Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90 z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 z-10" />
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 z-10 opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: '200px 200px' }} />
-
-        {/* Hero Text Content */}
-        <motion.div
-          style={{ opacity: contentOpacity }}
-          className="absolute inset-0 z-20 h-full flex flex-col justify-end pb-24 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: {
-              transition: { staggerChildren: 0.1, delayChildren: 0.4 }
-            }
-          }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-end gap-8 w-full">
-            <motion.h1
-              className="text-white font-serif text-5xl md:text-7xl lg:text-9xl leading-[0.85] max-w-4xl"
-              variants={{
-                hidden: { opacity: 0, y: 30 },
-                visible: { opacity: 1, y: 0, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } }
-              }}
-            >
-              <div className="overflow-hidden">
-                <motion.span
-                  className="inline-block"
-                  variants={{
-                    hidden: { y: "100%" },
-                    visible: { y: "0%", transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } }
-                  }}
-                >
-                  Crafted for
-                </motion.span>
-              </div>
-              <div className="overflow-hidden mt-2">
-                <motion.em
-                  className="italic font-light shimmer-gold inline-block"
-                  variants={{
-                    hidden: { y: "100%", opacity: 0, filter: "blur(10px)" },
-                    visible: { y: "0%", opacity: 1, filter: "blur(0px)", transition: { duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] } }
-                  }}
-                >
-                  Eternity.
-                </motion.em>
-              </div>
-            </motion.h1>
-
-            <motion.div
-              className="text-white/80 max-w-xs text-sm md:text-base font-light tracking-wide"
-              variants={{
-                hidden: { opacity: 0, x: 30 },
-                visible: { opacity: 1, x: 0, transition: { duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] } }
-              }}
-            >
-              <p className="mb-6 text-white/60 leading-relaxed">
-                From the heart of the earth to the hands of master artisans.
-              </p>
-              <motion.a
-                href="#philosophy"
-                className="group flex items-center gap-3 uppercase tracking-[0.25em] text-[11px] border border-white/20 px-6 py-3 rounded-full hover:border-theme-accent/60 hover:text-theme-accent hover:bg-theme-accent/5 backdrop-blur-sm transition-all duration-500 w-fit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Discover our story
-                <span className="group-hover:translate-x-1 transition-transform duration-300 inline-block">→</span>
-              </motion.a>
-            </motion.div>
+        <motion.div style={{opacity:contentOpacity}} className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-7xl flex-col gap-9 px-6 pb-10 sm:px-8 md:flex-row md:items-end md:justify-between md:pb-14 lg:px-10">
+          <div className="max-w-3xl">
+            <p className="mb-4 text-[10px] uppercase tracking-[.32em] text-theme-accent">Krishna Jewelry · Fine Indian Craft</p>
+            <h1 className="font-serif text-[clamp(3.3rem,9vw,8.5rem)] leading-[.84] text-white">Jewelry with<em className="block italic font-light shimmer-gold">a point of view.</em></h1>
+          </div>
+          <div className="max-w-xs text-sm text-white/65 md:pb-2">
+            <p className="leading-7">Heritage techniques, refined silhouettes and pieces designed to be worn well beyond the occasion.</p>
+            <a href="#collections" className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/20 px-5 py-3 text-[10px] uppercase tracking-[.22em] text-white hover:border-theme-accent hover:text-theme-accent transition-colors">Explore collection <span>↘</span></a>
           </div>
         </motion.div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          style={{ opacity: scrollHintOpacity }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 z-20"
-        >
-          <motion.div
-            className="w-1.5 h-1.5 rounded-full bg-theme-accent mb-2"
-            animate={{ opacity: [1, 0.2, 1], scale: [1, 0.6, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <span className="uppercase tracking-[0.3em] text-[9px] text-white/40">SCROLL TO REVEAL</span>
-          <motion.div
-            className="w-[1px] h-12 bg-white/30 origin-top"
-            animate={{ scaleY: [0, 1, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </motion.div>
-
+        <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-center text-white/30"><span className="text-[8px] uppercase tracking-[.35em]">Scroll</span><div className="mx-auto mt-2 h-8 w-px bg-gradient-to-b from-theme-accent/70 to-transparent"/></div>
       </div>
     </section>
   );
