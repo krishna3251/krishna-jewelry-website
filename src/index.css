@@ -14,11 +14,32 @@
   html {
     scroll-behavior: smooth;
     background: #fbf8f2;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-theme-light text-theme-dark font-sans antialiased;
+    min-width: 320px;
+    max-width: 100%;
     overflow-x: hidden;
+  }
+
+  #root,
+  main,
+  section,
+  header,
+  footer,
+  nav,
+  div {
+    min-width: 0;
+  }
+
+  img,
+  canvas,
+  svg,
+  video {
+    max-width: 100%;
   }
 
   img {
