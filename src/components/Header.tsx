@@ -47,7 +47,7 @@ export default function Header() {
             </div>
 
             <a
-              href="#"
+              href="/"
               className="shrink-0 font-serif text-[22px] font-medium uppercase tracking-[.30em] sm:text-[27px]"
               aria-label="Krishna Jewelry home"
             >

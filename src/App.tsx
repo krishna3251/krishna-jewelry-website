@@ -8,10 +8,12 @@ import Mosaic from './components/Mosaic';
 import PreFooter from './components/PreFooter';
 import Footer from './components/Footer';
 import ScrollProgress from './components/ScrollProgress';
+import ErrorBoundary from './components/ErrorBoundary';
 import { GoldDivider } from './components/GoldDecorations';
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <main className="min-h-screen bg-theme-light">
       <ScrollProgress />
       <Header />
@@ -26,5 +28,6 @@ export default function App() {
       <PreFooter />
       <Footer />
     </main>
+    </ErrorBoundary>
   );
 }
