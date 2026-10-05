@@ -8,6 +8,7 @@ import Mosaic from './components/Mosaic';
 import PreFooter from './components/PreFooter';
 import Footer from './components/Footer';
 import ScrollProgress from './components/ScrollProgress';
+import ErrorBoundary from './components/ErrorBoundary';
 import { GoldDivider } from './components/GoldDecorations';
 
 export default function App() {
