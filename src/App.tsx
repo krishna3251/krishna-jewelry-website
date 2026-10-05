@@ -13,6 +13,7 @@ import { GoldDivider } from './components/GoldDecorations';
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <main className="min-h-screen bg-theme-light">
       <ScrollProgress />
       <Header />
@@ -27,5 +28,6 @@ export default function App() {
       <PreFooter />
       <Footer />
     </main>
+    </ErrorBoundary>
   );
 }
