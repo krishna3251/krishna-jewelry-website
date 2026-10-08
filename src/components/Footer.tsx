@@ -1,4 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
+import { FiligreeDivider, JaliBackdrop, Rosette } from './Ornaments';
 
 const footerLinks = [
   { label: 'Collections', href: '#collections' },
@@ -19,8 +20,9 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer id="contact" className="bg-theme-dark px-6 pb-8 pt-12 text-theme-light sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1440px]">
+    <footer id="contact" className="relative overflow-hidden bg-theme-dark px-6 pb-8 pt-12 text-theme-light sm:px-8 lg:px-12">
+      <JaliBackdrop opacity={0.12} />
+      <div className="relative mx-auto max-w-[1440px]">
         <div className="grid gap-14 border-b border-white/10 pb-14 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-6">
             <p className="section-kicker">Krishna Jewelry</p>
@@ -94,7 +96,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pt-7 text-[9px] uppercase tracking-[.18em] text-white/22 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-center gap-6 pt-6">
+          <Rosette className="spin-slow h-14 w-14 opacity-50" />
+          <FiligreeDivider dark className="w-full max-w-2xl opacity-80" />
+        </div>
+
+        <div className="flex flex-col gap-4 pt-5 text-[9px] uppercase tracking-[.18em] text-white/22 md:flex-row md:items-center md:justify-between">
           <p>© {year} Krishna Jewelry</p>
           <p>Made with patience, not clutter.</p>
           <div className="flex gap-6">

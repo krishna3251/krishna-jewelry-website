@@ -1,5 +1,6 @@
 import { motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { LightRays, Mandala, Rosette } from "./Ornaments";
 
 const SOURCE_FRAME_COUNT = 192;
 const DISPLAY_FRAME_COUNT = 96;
@@ -178,6 +179,18 @@ export default function Hero({ onReady }: { onReady?: () => void }) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,transparent_0,rgba(0,0,0,.10)_38%,rgba(0,0,0,.78)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-black/25" />
 
+        <LightRays className="z-[6]" />
+
+        {/* Rotating gold mandalas that frame the piece behind the headline. */}
+        <div aria-hidden="true" className="absolute left-1/2 top-1/2 z-[6] h-[86vmin] w-[86vmin] -translate-x-1/2 -translate-y-1/2">
+          <Mandala petals={36} className="spin-slower h-full w-full opacity-[.26]" />
+        </div>
+        <div aria-hidden="true" className="absolute left-1/2 top-1/2 z-[6] h-[54vmin] w-[54vmin] -translate-x-1/2 -translate-y-1/2">
+          <Mandala petals={16} className="spin-slow h-full w-full opacity-[.18]" />
+        </div>
+        <Rosette className="twinkle absolute right-[8%] top-[22%] z-[6] hidden h-20 w-20 opacity-40 sm:block" />
+        <Rosette className="float-slow absolute left-[9%] top-[30%] z-[6] hidden h-14 w-14 opacity-30 lg:block" />
+
         <motion.div style={{ opacity: contentOpacity }} className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[1440px] flex-col gap-9 px-6 pb-10 sm:px-8 md:flex-row md:items-end md:justify-between md:pb-14 lg:px-12">
           <div className="max-w-3xl">
             <p className="mb-4 text-[10px] uppercase tracking-[.32em] text-theme-accent">Krishna Jewelry · Fine Indian Craft</p>
@@ -193,6 +206,8 @@ export default function Hero({ onReady }: { onReady?: () => void }) {
           <span className="text-[8px] uppercase tracking-[.35em]">Scroll</span>
           <div className="mx-auto mt-2 h-8 w-px bg-gradient-to-b from-theme-accent/70 to-transparent" />
         </div>
+
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 z-[7] h-24 bg-gradient-to-t from-[#0c0a08] to-transparent" />
       </div>
     </section>
   );

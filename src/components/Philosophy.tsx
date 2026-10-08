@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { JaliBackdrop, SectionWatermark } from './Ornaments';
 
 const chapters = [
   {
@@ -21,8 +22,11 @@ const chapters = [
 
 export default function Philosophy() {
   return (
-    <section id="philosophy" className="relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
-      <div className="mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
+    <section id="philosophy" className="grain relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
+      <JaliBackdrop opacity={0.1} />
+      <div aria-hidden="true" className="gold-bloom pointer-events-none absolute -left-40 top-24 h-[34rem] w-[34rem]" />
+      <SectionWatermark number="01" className="right-4 top-16 hidden lg:block" />
+      <div className="relative mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
         <div className="grid gap-12 border-b border-theme-dark/10 pb-16 lg:grid-cols-[1.05fr_.95fr] lg:items-end lg:gap-20">
           <div>
             <p className="section-kicker">Our point of view</p>

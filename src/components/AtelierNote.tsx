@@ -1,5 +1,6 @@
 import { CalendarDays, Gem, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { JaliBackdrop, Rosette } from './Ornaments';
 
 const notes = [
   { icon: Gem, title: 'See it properly', copy: 'Take your time with the proportions, details and finish before you decide.' },
@@ -9,8 +10,11 @@ const notes = [
 
 export default function AtelierNote() {
   return (
-    <section className="border-y border-theme-dark/10 bg-[#f3eee4]">
-      <div className="mx-auto grid max-w-[1440px] md:grid-cols-3">
+    <section className="grain relative overflow-hidden border-y border-theme-dark/10 bg-[#f3eee4]">
+      <JaliBackdrop opacity={0.1} />
+      <div aria-hidden="true" className="gold-bloom pointer-events-none absolute left-1/2 top-0 h-72 w-[42rem] -translate-x-1/2" />
+      <Rosette className="spin-slower pointer-events-none absolute -left-10 -top-10 hidden h-32 w-32 opacity-20 md:block" />
+      <div className="relative mx-auto grid max-w-[1440px] md:grid-cols-3">
         {notes.map((item, index) => {
           const Icon = item.icon;
 
@@ -24,7 +28,9 @@ export default function AtelierNote() {
               transition={{ duration: 0.55, delay: index * 0.06 }}
             >
               <div className="flex items-start justify-between">
-                <Icon size={20} strokeWidth={1.4} className="text-theme-accent transition-transform duration-500 group-hover:-translate-y-1" />
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-theme-accent/30 bg-white/45">
+                  <Icon size={20} strokeWidth={1.4} className="text-theme-accent transition-transform duration-500 group-hover:-translate-y-1" />
+                </span>
                 <span className="font-mono text-[9px] tracking-[.18em] text-theme-dark/25">0{index + 1}</span>
               </div>
               <h3 className="mt-10 font-serif text-3xl">{item.title}</h3>

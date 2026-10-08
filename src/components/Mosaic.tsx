@@ -1,9 +1,13 @@
 import { motion } from 'motion/react';
+import { CornerFlourish, JaliBackdrop, SectionWatermark } from './Ornaments';
 
 export default function Mosaic() {
   return (
-    <section className="relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
-      <div className="mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
+    <section className="grain relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
+      <JaliBackdrop opacity={0.09} />
+      <SectionWatermark number="02" className="-left-4 top-10 hidden lg:block" />
+      <div aria-hidden="true" className="gold-bloom pointer-events-none absolute -right-32 bottom-10 h-[30rem] w-[30rem]" />
+      <div className="relative mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
           <div className="lg:col-span-5">
             <p className="section-kicker">The world around it</p>
@@ -24,12 +28,16 @@ export default function Mosaic() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.8 }}
             >
-              <img
-                src="/images/Kundan%20Set%20with%20Saree.png"
-                alt="Kundan set styled with a saree"
-                loading="lazy"
-                className="aspect-[4/5] w-full object-cover"
-              />
+              <div className="relative overflow-hidden">
+                <img
+                  src="/images/Kundan%20Set%20with%20Saree.png"
+                  alt="Kundan set styled with a saree"
+                  loading="lazy"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+                <CornerFlourish className="left-3 top-3" />
+                <CornerFlourish flip className="right-3 top-3 text-white" />
+              </div>
               <figcaption className="mt-3 flex justify-between text-[9px] uppercase tracking-[.2em] text-theme-dark/35">
                 <span>01 / Ceremony</span><span>Krishna</span>
               </figcaption>

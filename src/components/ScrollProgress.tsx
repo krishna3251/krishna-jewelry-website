@@ -12,7 +12,8 @@ export default function ScrollProgress()
     <>
       {/* Progress bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-[2px] origin-left z-[9999]"
+        aria-hidden="true"
+        className="pointer-events-none fixed top-0 left-0 right-0 z-[9999] h-[2px] origin-left"
         style={{
           scaleX,
           background: 'linear-gradient(90deg, #b8962c, #d4af37, #e8c84a, #d4af37)',
@@ -20,7 +21,8 @@ export default function ScrollProgress()
       />
       {/* Glow at tip */}
       <motion.div
-        className="fixed top-0 h-[6px] w-[60px] z-[9999] pointer-events-none -translate-x-1/2"
+        aria-hidden="true"
+        className="pointer-events-none fixed top-0 z-[9999] h-[6px] w-[60px] -translate-x-1/2"
         style={{
           left: glowLeft,
           background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.6) 0%, transparent 70%)',

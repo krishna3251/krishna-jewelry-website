@@ -134,3 +134,79 @@
 ::-webkit-scrollbar { width: 7px; }
 ::-webkit-scrollbar-track { background: #fbf8f2; }
 ::-webkit-scrollbar-thumb { background: #b9953d; border-radius: 999px; }
+
+@layer utilities {
+  /* Warm film grain so large flat areas never read as flat print. */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+  }
+
+  /* Soft gold light bloom behind headings and ornaments. */
+  .gold-bloom {
+    background: radial-gradient(circle at 50% 50%, rgba(216,187,114,.20) 0%, rgba(216,187,114,.06) 38%, transparent 68%);
+  }
+
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 46s linear infinite;
+  }
+
+  .marquee-mask:hover .marquee-track { animation-play-state: paused; }
+
+  .spin-slow { animation: spin 68s linear infinite; }
+  .spin-slower { animation: spin 120s linear infinite reverse; }
+  .float-slow { animation: floaty 13s ease-in-out infinite; }
+  .float-slower { animation: floaty 19s ease-in-out infinite reverse; }
+  .twinkle { animation: twinkle 5.5s ease-in-out infinite; }
+  .ray-pulse { animation: ray-pulse 9s ease-in-out infinite; }
+
+  /* Gold light sweeping across collection cards on hover. */
+  .card-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform: translateX(-120%) skewX(-14deg);
+    background: linear-gradient(90deg, transparent, rgba(255,244,201,.22), transparent);
+    transition: transform 1.1s cubic-bezier(.16,1,.3,1);
+  }
+
+  .card-sweep:hover::after { transform: translateX(120%) skewX(-14deg); }
+}
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: .22; }
+  50% { opacity: .85; }
+}
+
+@keyframes ray-pulse {
+  0%, 100% { opacity: .16; }
+  50% { opacity: .44; }
+}

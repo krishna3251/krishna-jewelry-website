@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
+import { JaliBackdrop, LightRays, Mandala, Rosette } from './Ornaments';
 
 const craftSteps = [
   { number: '01', label: 'Shape', title: 'Start with proportion', desc: 'The silhouette is resolved first, so the piece feels balanced before detail enters the frame.' },
@@ -20,11 +21,21 @@ export default function TheCraft() {
           className="h-full w-full object-cover opacity-[.16]"
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(185,149,61,.16),transparent_32%),linear-gradient(180deg,rgba(12,10,8,.68),rgba(12,10,8,.98))]" />
+        <JaliBackdrop opacity={0.16} />
+        <LightRays />
+      </div>
+
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-1/4 hidden h-[26rem] w-[26rem] lg:block">
+        <Mandala petals={32} className="spin-slower h-full w-full opacity-[.18]" />
       </div>
 
       <div className="relative mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
         <div className="grid gap-14 lg:grid-cols-[.75fr_1.25fr] lg:gap-24">
           <div className="lg:sticky lg:top-28 lg:h-fit">
+            <div className="mb-8 flex items-center gap-4">
+              <Rosette className="spin-slow h-12 w-12 opacity-80" />
+              <span className="h-px w-16 bg-theme-accent/40" />
+            </div>
             <p className="section-kicker">The craft</p>
             <h2 className="mt-5 max-w-xl font-serif text-[clamp(3rem,6vw,6rem)] leading-[.88]">
               Detail is

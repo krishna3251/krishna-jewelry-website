@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowUpRight, X } from 'lucide-react';
 import { cn } from '../utils';
+import { CornerFlourish, JaliBackdrop, SectionWatermark } from './Ornaments';
 
 const collections = [
   { id: 1, name: 'Jadau Setting', category: 'Heritage', image: '/images/Jadau%20Setting.png', desc: 'A highly detailed traditional composition, presented with a restrained editorial eye.', details: ['Hand-finished detail', '22k gold look', 'Heritage-inspired'] },
@@ -16,18 +17,49 @@ export default function Collections() {
   const [filter, setFilter] = useState('All');
   const [selected, setSelected] = useState<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selected === null) {
-      document.body.style.overflow = '';
-      return;
-    }
+    if (selected === null) return;
 
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = 'hidden';
     closeRef.current?.focus();
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelected(null);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      ).filter(element => element.offsetParent !== null);
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
+      previouslyFocused?.focus?.();
     };
   }, [selected]);
 
@@ -38,8 +70,11 @@ export default function Collections() {
   const active = collections.find(collection => collection.id === selected);
 
   return (
-    <section id="collections" className="relative bg-theme-light py-24 sm:py-32 lg:py-40">
-      <div className="mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
+    <section id="collections" className="grain relative overflow-hidden bg-theme-light py-24 sm:py-32 lg:py-40">
+      <JaliBackdrop opacity={0.08} />
+      <SectionWatermark number="03" className="right-2 top-14 hidden lg:block" />
+      <div aria-hidden="true" className="gold-bloom pointer-events-none absolute -left-32 top-40 h-[30rem] w-[30rem]" />
+      <div className="relative mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <p className="section-kicker">The collection</p>
@@ -83,7 +118,7 @@ export default function Collections() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.65, delay: index * 0.06 }}
               className={cn(
-                'group relative overflow-hidden bg-[#ede7da] text-left focus:outline-none focus:ring-2 focus:ring-theme-accent',
+                'card-sweep group relative overflow-hidden bg-[#ede7da] text-left focus:outline-none focus:ring-2 focus:ring-theme-accent',
                 index === 0 && 'lg:col-span-7',
                 index === 1 && 'lg:col-span-5',
                 index > 1 && 'lg:col-span-6'
@@ -96,6 +131,8 @@ export default function Collections() {
                 className="aspect-[1.1/1] h-full w-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.045]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+              <CornerFlourish className="left-3 top-3" />
+              <CornerFlourish flip className="right-3 top-3" />
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
                 <div className="flex items-center gap-3 text-[9px] uppercase tracking-[.25em] text-theme-accent">
                   <span>{String(item.id).padStart(2, '0')}</span>
@@ -128,7 +165,8 @@ export default function Collections() {
           }}
         >
           <motion.div
-            className="relative grid max-h-[90vh] w-full max-w-5xl overflow-hidden bg-theme-light md:grid-cols-[.95fr_1.05fr]"
+            ref={dialogRef}
+            className="grain relative grid max-h-[90vh] w-full max-w-5xl overflow-hidden bg-theme-light md:grid-cols-[.95fr_1.05fr]"
             initial={{ opacity: 0, y: 24, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.4 }}
